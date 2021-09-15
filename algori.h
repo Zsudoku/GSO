@@ -130,9 +130,15 @@ void GSO(int circle) {
 	ofstream out;
     out.open("out.txt");
 	srand(unsigned(time(NULL)));
-
+	CS_swap();//随机货位
 	getPerm(fly);//初始化种群，产生编码
 	enCode(fly);//种群解码，关键
+	for(int i=0;i<flyNum;i++){
+		for(int j=0;j<n;j++){
+			out<<fly[i].G[j]<<",";
+		}
+		out<<endl<<fly[i].fitness<<endl;
+	}
 	for (int i = 0; i < n; i++) //货位号之间的距离
 		for (int j = i + 1; j < n; j++) {
 			dis[i][j] = sqrt(pow((cargo[i].x - cargo[j].x), 2) + pow((cargo[i].y - cargo[j].y), 2) + pow((cargo[i].z - cargo[j].z), 2));
@@ -154,10 +160,13 @@ void GSO(int circle) {
 			rd[i] = min(rs, max(0.0, rd[i] + betata * (nt - Nt[i].size())));
 
 		for (int i = 0; i < flyNum; i++) //确定萤火虫邻域集
-			for (int j = 0; j < flyNum; j++) {
-				if (i == j) break;
-				if (discode(fly[i].G,fly[j].G) < rd[i] && fly[i].fluorescein > fly[j].fluorescein)
+			for (int j = i+1; j < flyNum; j++) {
+				//if (i == j) continue;
+				//double dd = discode(fly[i].G,fly[j].G);
+				if ( fly[i].fluorescein < fly[j].fluorescein && discode(fly[i].G,fly[j].G) < rd[i])
 					Nt[i].push_back(j);
+				else if(fly[i].fluorescein > fly[j].fluorescein && discode(fly[i].G,fly[j].G) < rd[j])
+					Nt[j].push_back(i);
 			}
 		
 		int count = 0;

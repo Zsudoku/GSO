@@ -23,7 +23,7 @@ using namespace std;
 //#include"newInit.h"
 #include"algori.h"
 //#include"test.h"
-
+ 
 int main() {
 
 	clock_t begin, end;

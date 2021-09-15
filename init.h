@@ -1,3 +1,52 @@
+//判断货物类型
+char judge_type(int p){
+	if(cargo[p].s1==0 && cargo[p].s2==0)
+		return 'R';
+	else if(cargo[p].s1==0 && cargo[p].s2==1)
+		return 'S';
+	else if(cargo[p].s1==1 && cargo[p].s2==0)
+		return 'H';
+	else if(cargo[p].s1==1 && cargo[p].s2==1)
+		return 'C';
+	else{
+		cout<<"judge_type error!"<<endl;
+		cout<<p<<endl;
+		return 'C';
+	}
+}
+
+//交换货位坐标
+void CS_swap(){
+	for(int i=0;i<n/2;i++){
+		int sit = rand()%(n-1);
+		int temp_x=0,temp_y=0,temp_z=0;
+		temp_x = cargo[i].x;
+		temp_y = cargo[i].y;
+		temp_z = cargo[i].z;
+		cargo[i].x = cargo[sit].x;
+		cargo[i].y = cargo[sit].y;
+		cargo[i].z = cargo[sit].z;
+		cargo[sit].x = temp_x;
+		cargo[sit].y = temp_y;
+		cargo[sit].z = temp_z;
+	}
+	ofstream out1;
+	ofstream out_sit;
+	out1.open("rand_2000_1.txt");
+	out_sit.open("rand_2000_1_sit.txt");
+	for(int i=0;i<n;i++){
+		out1<<"{"<<cargo[i].x<<","<<cargo[i].y<<","<<cargo[i].z<<","<<cargo[i].s1<<","<<cargo[i].s2<<","<<cargo[i].num<<","<<"'a'"<<","<<cargo[i].model<<","<<cargo[i].time<<"}"<<",";
+		out_sit<<cargo[i].x<<","<<cargo[i].y<<","<<cargo[i].z<<","<<judge_type(i)<<endl;
+		if((i+1)%5==0){
+			out1<<endl;	
+		}
+	}
+	out1.close();
+	out_sit.close();
+}
+
+
+
 //入库仿真
 
 //获得入库编码
@@ -147,7 +196,7 @@ void R_Test(int r[]){
         }
     }
 	}
-	write.close(); // 输出完毕后关闭这个文件
+	//write.close(); // 输出完毕后关闭这个文件
 }
 
 void randomArr(int G[],int len){    //随机序列，G为编码数组,len为编码数组长度
@@ -224,11 +273,11 @@ void insert_G(int G[],int sit,int value){  //插入 ，在某个数组中插入一个元素，输
 void S_H2(int G[]){//输入编码数组
     int j = 0,p=0;
     for(int i=0;i<n;i++){//遍历编码数组
-        if(cargo[G[i]-1].state=='S' && G[i]>=R+1 && G[i]<=R+H-k){//按照编码的顺序，判断编码是否属于 送检编码,且该送检编码属于前H-K
+        if(cargo[G[i]-1].s1==0 && cargo[G[i]-1].s2==1 && G[i]>=R+1 && G[i]<=R+H-k){//按照编码的顺序，判断编码是否属于 送检编码,且该送检编码属于前H-K
 			s[j] = G[i];//将该编码写入到送检数组中
 			j++;//送检数组下标自增1
 		}
-		else if(cargo[G[i]-1].state=='H' && G[i]>=R+S+k+1 && G[i]<=R+S+H){//按照编码顺序，判断编码是否属于回库编码，且回库编码属于后H-k
+		else if(cargo[G[i]-1].s1==1 && cargo[G[i]-1].s2==0 && G[i]>=R+S+k+1 && G[i]<=R+S+H){//按照编码顺序，判断编码是否属于回库编码，且回库编码属于后H-k
 			h[p] = G[i];//将该编码写入到回库编码
 			p++;//回库数组下标自增1
 		}
@@ -239,11 +288,11 @@ void S_H2(int G[]){//输入编码数组
 void S_H(firefly f){//该函数与S_H2的功能一致，但输入的是一个种群
 	int j = 0,p=0;
     for(int i=0;i<n;i++){
-        if(cargo[f.G[i]-1].state=='S' && f.G[i]>=R+1 && f.G[i]<=R+H-k){
+        if(cargo[f.G[i]-1].s1==0 && cargo[f.G[i]-1].s2==1 && f.G[i]>=R+1 && f.G[i]<=R+H-k){
 			s[j] = f.G[i];
 			j++;
 		}
-		else if(cargo[f.G[i]-1].state=='H' && f.G[i]>=R+S+k+1 && f.G[i]<=R+S+H){
+		else if(cargo[f.G[i]-1].s1==1 && cargo[f.G[i]-1].s2==0 && f.G[i]>=R+S+k+1 && f.G[i]<=R+S+H){
 			h[p] = f.G[i];
 			p++;
 		}
@@ -314,8 +363,8 @@ double read(double TI,double TDI,int p,int nextp,int g1_H2[],int g2_H2[],int g3_
             walk_time2 = Walk_time(cargo[p-1].y,cargo[p-1].z);//***可修改***堆垛机最后移动到下一个编码的起始位置，也就是0,0位置（此处，后期可根据不同的回库资产的楼层让堆垛机移动到不同的位置）
         else
             walk_time2 = Walk_time(abs(cargo[p-1].y-cargo[nextp-1].y),abs(cargo[p-1].z-cargo[nextp-1].z));//如果属于送检或出库，则移动到该货物的货架位置
-        TI += wait_time + grab_time + walk_time1 + place_time+ walk_time2 ;//该条编码的堆垛机总工作时间为 等待时间+拿取时间+工作行走时间+放置时间+行走到下一条编码的时间
-		TDI +=  grab_time + walk_time1 + place_time+ walk_time2 ;;//堆垛机实际工作时间 = 总工作时间-等待时间
+        TI +=  grab_time + walk_time1 + place_time+ walk_time2;//该条编码的堆垛机总工作时间为 等待时间+拿取时间+工作行走时间+放置时间+行走到下一条编码的时间
+		TDI =  grab_time + walk_time1 + place_time+ walk_time2 + TD[0];//堆垛机实际工作时间 = 总工作时间-等待时间
 		TD[0] = TDI;//将实际工作时间写入到实际工作数组中，如果后期有需要，则该数组可以保留每一台堆垛机的实际工作时间。此时将每台堆垛机的实际工作时间叠加到TD[0]中
         //开始计算 送检编码 所对应的 回库编码 的 回库时间
 		for( i=0;i<H-k;i++){
@@ -385,7 +434,7 @@ double read(double TI,double TDI,int p,int nextp,int g1_H2[],int g2_H2[],int g3_
             else
                 walk_time2 = Walk_time(abs(cargo[p-1].y-cargo[nextp-1].y),abs(cargo[p-1].z-cargo[nextp-1].z));
             TI += wait_time + grab_time + walk_time1 + walk_time2 + place_time;
-			TDI += grab_time + walk_time1 + walk_time2 + place_time;
+			TDI = grab_time + walk_time1 + walk_time2 + place_time + TD[0];
 			TD[0] = TDI;
             break;
         case 'H':
@@ -405,7 +454,7 @@ double read(double TI,double TDI,int p,int nextp,int g1_H2[],int g2_H2[],int g3_
             else
                 walk_time2 = Walk_time(abs(cargo[p-1].y-cargo[nextp-1].y),abs(cargo[p-1].z-cargo[nextp-1].z));
             TI += wait_time + grab_time + walk_time1 + walk_time2 + place_time;
-			TDI += grab_time + walk_time1 + walk_time2 + place_time;
+			TDI = grab_time + walk_time1 + walk_time2 + place_time + TD[0];
 			TD[0] = TDI;
             break;
         case 'C':
@@ -415,7 +464,7 @@ double read(double TI,double TDI,int p,int nextp,int g1_H2[],int g2_H2[],int g3_
             else
                 walk_time2 = Walk_time(abs(cargo[p-1].y-cargo[nextp-1].y),abs(cargo[p-1].z-cargo[nextp-1].z));
             TI += grab_time + walk_time1 + place_time + walk_time2;
-			TDI += grab_time + walk_time1 + walk_time2 + place_time;
+			TDI = grab_time + walk_time1 + walk_time2 + place_time + TD[0];
 			TD[0] = TDI;
             break;
         case 'S':
@@ -434,8 +483,8 @@ void Storing_num(firefly f){//输入种群
 	g1_h = 0,g2_h = 0,g3_h = 0,g4_h = 0,g5_h = 0,g6_h = 0;
 	g1_n=0;g2_n=0;g3_n=0;g4_n=0;g5_n=0;g6_n=0;
     for(int i=0;i<n;i++){//遍历所有货位
-        p = cargo[i].x;//货架信息
-		g = cargo[i].state;//货物类别 R、S、H、C
+        p = cargo[f.G[i]-1].x;//货架信息
+		g = judge_type(f.G[i]-1);//货物类别 R、S、H、C
         switch (p)//判断属于哪台堆垛机
         {
         case 1:
@@ -501,7 +550,7 @@ void Storing(firefly f,int g1[],int g2[],int g3[],int g4[],int g5[],int g6[],int
 	char g=0;
     for(int i=0;i<n;i++){//遍历编码数组
         p = cargo[f.G[i]-1].x;//货架信息
-		g = cargo[f.G[i]-1].state;//货物类别 R、S、H、C
+		g = judge_type(f.G[i]-1);//货物类别 R、S、H、C
         switch (p)//判断编码属于哪台堆垛机
         {
         case 1:
@@ -617,7 +666,7 @@ int max2(double T[]){
 	//T[0] = T[0]/60.0;
 	G_fintess = T[0]*0.95 + TD[0]*0.05;//适应度值计算，加权重
 	//G_fintess = G_fintess/60.0;//除以60 将秒转换为分钟
-	T[0] = T[0]/60.0;//堆垛机实际工作时间 分钟
+	//T[0] = T[0]/60.0;//堆垛机实际工作时间 分钟
 	//return T[0];
     return G_fintess;
 }
@@ -984,15 +1033,18 @@ void getPerm(firefly fly[flyNum])//每一行是一个路径  创建好几个G
 }
 //单独解码
 void enSimpleCode(firefly& f) {
+	flag_R = 0;
+	for(int i=0;i<R;i++)
+		a[i] = 0;
 	t_R = 0;
 	for(int i=0;i<6;i++){
 		T[i] = 0;
 		TD[i] = 0;
 	}
 	for(int i=0;i<H-k;i++){
-		th[i] = 99999;
+		th[i] = 0;
 		hi[i][0]=9999;
-		hi[i][1]=99999;
+		hi[i][1]=0;
 	}
 	for(int i=0;i<R;i++){
 		r_arry[i] = 0;}
@@ -1015,16 +1067,17 @@ void enSimpleCode(firefly& f) {
 	int g1_th[g1_h],g2_th[g2_h],g3_th[g3_h],g4_th[g4_h],g5_th[g5_h],g6_th[g6_h];//6台堆垛机的回库任务的时间
 	int g1[g1_n],g2[g2_n],g3[g3_n],g4[g4_n],g5[g5_n],g6[g6_n];//任务分拣到6台堆垛机
 	int g1_H2[g1_h],g2_H2[g2_h],g3_H2[g3_h],g4_H2[g4_h],g5_H2[g5_h],g6_H2[g6_h];//根据送检任务将回库任务分配到相应的堆垛机
-	for(int i=0;i<g1_s;i++)g1_th[i]=9999;
-	for(int i=0;i<g2_s;i++)g2_th[i]=9999;
-	for(int i=0;i<g3_s;i++)g3_th[i]=9999;
-	for(int i=0;i<g4_s;i++)g4_th[i]=9999;
-	for(int i=0;i<g5_s;i++)g5_th[i]=9999;
-	for(int i=0;i<g6_s;i++)g6_th[i]=9999;
+	for(int i=0;i<g1_h;i++){g1_th[i]=0;g1_H2[i]=0;}
+	for(int i=0;i<g2_h;i++){g2_th[i]=0;g2_H2[i]=0;}
+	for(int i=0;i<g3_h;i++){g3_th[i]=0;g3_H2[i]=0;}
+	for(int i=0;i<g4_h;i++){g4_th[i]=0;g4_H2[i]=0;}
+	for(int i=0;i<g5_h;i++){g5_th[i]=0;g5_H2[i]=0;}
+	for(int i=0;i<g6_h;i++){g6_th[i]=0;g6_H2[i]=0;}
+
 	Storing(f,g1,g2,g3,g4,g5,g6,g1_S,g2_S,g3_S,g4_S,g5_S,g6_S,g1_H,g2_H,g3_H,g4_H,g5_H,g6_H);
 	//f.fitness=Fintess(f,g1,g2,g3,g4,g5,g6,g1_H,g2_H,g3_H,g4_H,g5_H,g6_H,g1_H2,g2_H2,g3_H2,g4_H2,g5_H2,g6_H2,g1_th,g2_th,g3_th,g4_th,g5_th,g6_th);
 	Fintess(f,g1,g2,g3,g4,g5,g6,g1_H,g2_H,g3_H,g4_H,g5_H,g6_H,g1_H2,g2_H2,g3_H2,g4_H2,g5_H2,g6_H2,g1_th,g2_th,g3_th,g4_th,g5_th,g6_th);
-	f.fluorescein = (1-rou)*f.fluorescein + gamma * (b1 - f.fitness);
+	f.fluorescein = (1-rou)*f.fluorescein + gamma / f.fitness;
 
 }
 
@@ -1036,9 +1089,9 @@ void enCode(firefly fly[flyNum]) {
 			TD[i] = 0;
 		}
 		for(int i=0;i<H-k;i++){
-			th[i] = 99999;
+			th[i] =0;
 			hi[i][0]=9999;
-			hi[i][1]=9999;
+			hi[i][1]=0;
 		}
 		
 		for(int i=0;i<flyNum;i++){
