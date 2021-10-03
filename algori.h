@@ -130,8 +130,14 @@ void GSO(int circle) {
 	ofstream out;
     out.open("out.txt");
 	srand(unsigned(time(NULL)));
-	CS_swap();//随机货位
+	//CS_swap();//随机货位
 	getPerm(fly);//初始化种群，产生编码
+	// for(int i=0;i<flyNum;i++){
+	// 	for(int j=0;j<n;j++){
+	// 		out<<fly[i].G[j]<<",";
+	// 	}
+	// 	out<<endl<<fly[i].fitness<<endl;
+	// }
 	enCode(fly);//种群解码，关键
 	for(int i=0;i<flyNum;i++){
 		for(int j=0;j<n;j++){
@@ -227,6 +233,7 @@ void GSO(int circle) {
 	for(int i=0;i<1;i++){
 		for(int j=0;j<n;j++){
 			cout<<fly[i].G[j]<<",";
+			out<<fly[i].G[j]<<",";
 			}cout<<endl;cout<<fly[i].fitness<<endl;}
 	out.close();
 }
